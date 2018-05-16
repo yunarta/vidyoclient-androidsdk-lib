@@ -1,0 +1,86 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'http://repo.dogeza.club:18090/artifactory/android/'
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.2.0-alpha14'
+    }
+}
+
+repositories {
+    maven {
+        url 'http://repo.dogeza.club:18090/artifactory/android/'
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group 'com.vidyo'
+version '4.1.21.7'
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 27
+
+        versionCode 1
+        versionName version
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['android']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+publishing {
+    publications {
+        projectRelease(MavenPublication) {
+            artifactId 'VidyoClient'
+            artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+        }
+    }
+}
+
+task compilePublications(dependsOn: ["assemble", "sourcesJar", "javadocJar", "generatePomFileForProjectReleasePublication"]) {
+    group = "publish"
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+dependencies {
+    implementation fileTree(dir: 'android', include: ['*.jar'])
+}
