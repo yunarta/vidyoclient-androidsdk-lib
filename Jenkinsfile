@@ -17,24 +17,23 @@ node("android") {
         stage("Publish") {
             def server = Artifactory.server "REPO"
 
-            // [org]/[module]/[baseRev](-[folderItegRev])/[module]-[baseRev](-[fileItegRev])(-[classifier]).[ext]
             uploadSpec = """{
                           "files": [
                              {
                               "pattern": "build/outputs/aar/VidyoClient-release.aar",
-                              "target": "libs-android-vidyo/com.vidyo/VidyoClient/${
+                              "target": "libs-android-vidyo/com/vidyo/VidyoClient/${
                 version
             }/VidyoClient-${version}.aar"
                              },
                              {
                               "pattern": "build/publications/projectRelease/pom-default.xml",
-                              "target": "libs-android-vidyo/com.vidyo/VidyoClient/${
+                              "target": "libs-android-vidyo/com/vidyo/VidyoClient/${
                 version
             }/VidyoClient-${version}.pom"
                              },
                              {
                               "pattern": "build/libs/VidyoClient-*-sources.jar",
-                              "target": "libs-android-vidyo/com.vidyo/VidyoClient/${
+                              "target": "libs-android-vidyo/com/vidyo/VidyoClient/${
                 version
             }/VidyoClient-${version}-sources.jar"
                              }
