@@ -6,7 +6,6 @@ stage("Checkout") {
 
 stage("Compile Publications") {
     node("android") {
-        def GRADLE_HOME = tool name: 'Gradle', type: 'gradle'
-        sh "$GRADLE_HOME/bin/gradle compilePublications"
+        sh "./gradlew compilePublications"
     }
 }
