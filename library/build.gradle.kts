@@ -1,7 +1,7 @@
 import com.mobilesolutionworks.gradle.publish.worksPublication
 
 plugins {
-    id("com.android.library") version "3.2.0-alpha13"
+    id("com.android.library") version "3.1.3"
     id("org.jetbrains.kotlin.kapt") version "1.2.41"
     id("works-publish") version "1.0.3"
     kotlin("android") version "1.2.41"

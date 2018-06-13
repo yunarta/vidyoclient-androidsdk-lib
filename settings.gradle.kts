@@ -2,9 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
-        maven {
-            url = java.net.URI("https://maven.google.com/")
-        }
+        jcenter()
         maven {
             url = java.net.URI("https://dl.bintray.com/mobilesolutionworks/release")
         }
