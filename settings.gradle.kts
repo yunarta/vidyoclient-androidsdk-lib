@@ -18,17 +18,11 @@ pluginManagement {
                     useModule("com.mobilesolutionworks:works-publish:${requested.version}")
                 }
             }
-
-//            switch (requested.id.id) {
-//                case ~/^com\.android\..*/:
-//                    useModule("com.android.tools.build:gradle:${requested.version}")
-//            }
         }
     }
 }
 
-//include":VidyoClient"
-//project(":VidyoClient").projectDir = new File("library")
+rootProject.name = "VidyoClient SDK - Android Native Library"
 
 include(":VidyoClient")
 project(":VidyoClient").projectDir = File("library")
