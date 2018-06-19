@@ -51,19 +51,6 @@ pipeline {
             }
 
             parallel {
-                stage("Snapshot") {
-                    when {
-                        expression {
-                            notRelease()
-                        }
-                    }
-
-                    steps {
-                        updateVersion()
-                        sh './gradlew clean worksGeneratePublication'
-                    }
-                }
-
                 stage("Release") {
                     when {
                         expression {
@@ -86,19 +73,6 @@ pipeline {
             }
 
             parallel {
-                stage("Snapshot") {
-                    when {
-                        expression {
-                            notRelease()
-                        }
-                    }
-
-                    steps {
-                        echo "Compare snapshot"
-                        compareArtifact("snapshot", "integrate/snapshot", false)
-                    }
-                }
-
                 stage("Release") {
                     when {
                         expression {
@@ -122,19 +96,6 @@ pipeline {
             }
 
             parallel {
-                stage("Snapshot") {
-                    when {
-                        expression {
-                            notIntegration() && notRelease()
-                        }
-                    }
-
-                    steps {
-                        echo "Publishing snapshot"
-                        publish("snapshot")
-                    }
-                }
-
                 stage("Release") {
                     when {
                         expression {
@@ -151,24 +112,6 @@ pipeline {
         }
     }
 }
-
-def updateVersion() {
-    bintrayDownloadMatches repository: "mobilesolutionworks/snapshot",
-            packageInfo: readYaml(file: 'library/module.yaml'),
-            credential: "mobilesolutionworks.jfrog.org"
-
-    def properties = readYaml(file: 'library/module.yaml')
-    def incremented = versionIncrementQualifier()
-    if (incremented != null) {
-        properties.version = incremented
-    } else {
-        properties.version = properties.version + "-BUILD-1"
-    }
-
-    sh "rm library/module.yaml"
-    writeYaml file: 'library/module.yaml', data: properties
-}
-
 
 def compareArtifact(String repo, String job, boolean download) {
     if (download) {
