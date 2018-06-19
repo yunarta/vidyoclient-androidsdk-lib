@@ -2,16 +2,19 @@ import com.mobilesolutionworks.gradle.publish.worksPublication
 
 plugins {
     id("com.android.library") version "3.1.3"
-    id("org.jetbrains.kotlin.kapt") version "1.2.41"
-    id("works-publish") version "1.0.3"
+    id("works-publish") version "1.5.2"
     kotlin("android") version "1.2.41"
+}
+
+apply {
+    plugin("works-publish")
 }
 
 group = "com.vidyo"
 version = "4.1.21.7"
 
 worksPublication?.apply {
-    module = File("module.properties")
+    module = file("module.yaml")
 }
 
 android {
