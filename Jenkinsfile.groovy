@@ -50,9 +50,18 @@ pipeline {
                 }
             }
 
-            steps {
-                echo "Build"
-                sh './gradlew clean worksGeneratePublication'
+            parallel {
+                stage("Release") {
+                    when {
+                        expression {
+                            isRelease()
+                        }
+                    }
+
+                    steps {
+                        sh """./gradlew cleanTest worksGeneratePublication"""
+                    }
+                }
             }
         }
 
@@ -64,19 +73,6 @@ pipeline {
             }
 
             parallel {
-                stage("Snapshot") {
-                    when {
-                        expression {
-                            notRelease()
-                        }
-                    }
-
-                    steps {
-                        echo "Compare snapshot"
-                        compareArtifact("snapshot", "integrate/snapshot")
-                    }
-                }
-
                 stage("Release") {
                     when {
                         expression {
@@ -86,7 +82,7 @@ pipeline {
 
                     steps {
                         echo "Compare release"
-                        compareArtifact("release", "integrate/snapshot")
+                        compareArtifact("release", "integrate/release", true)
                     }
                 }
             }
@@ -100,19 +96,6 @@ pipeline {
             }
 
             parallel {
-                stage("Snapshot") {
-                    when {
-                        expression {
-                            notIntegration() && notRelease()
-                        }
-                    }
-
-                    steps {
-                        echo "Publishing snapshot"
-                        publish("snapshot")
-                    }
-                }
-
                 stage("Release") {
                     when {
                         expression {
@@ -122,56 +105,45 @@ pipeline {
 
                     steps {
                         echo "Publishing release"
-                        publish("snapshot")
+                        publish("release")
                     }
                 }
             }
         }
     }
-
-//    post {
-//        success {
-//            notifyDownstream()
-//        }
-//    }
 }
 
-def compareArtifact(String repo, String job) {
-    bintrayDownload([
-            dir       : ".compare",
-            credential: "mobilesolutionworks.jfrog.org",
-            pkg       : readProperties(file: 'library/module.properties'),
-            repo      : "mobilesolutionworks/${repo}",
-            src       : "library/build/libs"
-    ])
+def compareArtifact(String repo, String job, boolean download) {
+    if (download) {
+        bintrayDownloadMatches repository: "mobilesolutionworks/${repo}",
+                packageInfo: readYaml(file: 'library/module.yaml'),
+                credential: "mobilesolutionworks.jfrog.org"
+    }
 
-    def same = bintrayCompare([
-            dir       : ".compare",
+    def same = bintrayCompare repository: "mobilesolutionworks/${repo}",
+            packageInfo: readYaml(file: 'library/module.yaml'),
             credential: "mobilesolutionworks.jfrog.org",
-            pkg       : readProperties(file: 'library/module.properties'),
-            repo      : "mobilesolutionworks/${repo}",
-            src       : "library/build/libs"
-    ])
+            path: "library/build/libs"
 
-    if (fileExists(".notify")) {
-        sh "rm .notify"
+    if (fileExists(".jenkins/notify")) {
+        sh "rm .jenkins/notify"
     }
 
     if (same) {
         echo "Artifact output is identical, no integration needed"
     } else {
-        writeFile file: ".notify", text: job
+        writeFile file: ".jenkins/notify", text: job
     }
 }
 
 def doPublish() {
-    return fileExists(".notify")
+    return fileExists(".jenkins/notify")
 }
 
 def notifyDownstream() {
-    if (fileExists(".notify")) {
+    if (fileExists(".jenkins/notify")) {
 
-        def job = readFile file: ".notify"
+        def job = readFile file: ".jenkins/notify"
         def encodedJob = java.net.URLEncoder.encode(job, "UTF-8")
 
         build job: "github/yunarta/works-controller-android/${encodedJob}", propagate: false, wait: false
@@ -183,7 +155,7 @@ def publish(String repo) {
     if (who == "works") {
         bintrayPublish([
                 credential: "mobilesolutionworks.jfrog.org",
-                pkg       : readProperties(file: 'library/module.properties'),
+                pkg       : readYaml(file: 'library/module.yaml'),
                 repo      : "mobilesolutionworks/${repo}",
                 src       : "library/build/libs"
         ])
